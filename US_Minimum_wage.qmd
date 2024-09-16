@@ -1,0 +1,46 @@
+---
+title: "Minimum Wage in the United States"
+author: "Eric Cheung"
+format: 
+  html:
+    embed-resources: true
+editor: visual
+---
+
+```{r}
+#| message: false
+#| warning: false
+library(tidyverse)
+library(maps)
+library(tidycensus)
+library(tigris)
+```
+
+## Map - The Minimum Wage in the United States, 2023
+
+```{r}
+#| message: false
+usmap <- map_data("state")
+usminwages <- read_csv("usminimumwages.csv")
+usminwages
+```
+
+I created the "usminimumwages.csv" using data from a statista.com[^1] page titled "*Minimum wage rates in the United States in 2023, by state(in U.S. dollars)*". It describes each state's minimum wage at the state-level as well as exceptions to them. As the minimum wage could vary a lot due to the number of employees, amount of profit as well as a large number of other variables, I have only included the general state minimum wages. Also note that a few states does not have a minimum wage at the state level and follow the federal minimum of \$7.25.
+
+[^1]: <https://www.statista.com/statistics/238997/minimum-wage-by-us-state/>
+
+    Titled: **Minimum wage rates in the United States in 2023, by state(in U.S. dollars)**
+
+```{r}
+usmapwage <- usminwages |> 
+  mutate(region = tolower(State)) |> 
+  right_join(usmap, join_by(region))
+
+ggplot(usmapwage, aes(x = long, y = lat)) +
+  geom_polygon(aes(group = group, fill = `Minimum Wage`)) +
+  coord_map() +
+  theme_void() +
+  labs(caption = "States in grey represent no state-level minimum wage")
+```
+
+The lower minimum wages are generally in the south or in the middle regions of the country. The higher wages are located on the west coast and in the northeast. The west coast and northeast contain large cities such as New York City and Los Angeles and therefore have higher costs of living. The states in the south and in middle America generally are poorer compared to the states/cities mention before.
