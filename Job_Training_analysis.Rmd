@@ -1,0 +1,387 @@
+---
+title: "Effect of Job Training Partnership Act"
+author: "Eric Cheung"
+date: "2024-03-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(readxl)
+library(car)
+library(ivreg)
+library(tidyverse)
+```
+
+# 1)
+
+```{r}
+data <- read_xlsx("jtpa.xlsx")
+```
+
+```{r}
+data |> 
+  summarise(count = n(),
+            treatment_group_mean = mean(offered_training),
+            received_training_mean = mean(received_training))
+```
+
+The two groups are not equal meaning that compliance with the treatment is imperfect. As people some people that were offered training didn't receive the training or some people that weren't offered training received training anyways.
+
+# 2)
+
+```{r}
+data <- data |> 
+  mutate(logincome = log(income))
+
+glimpse(data |> 
+  group_by(received_training) |> 
+  summarise(mean_logincome = mean(logincome),
+            mean_hsorged = mean(hsorged),
+            mean_black = mean(black),
+            mean_hispanic = mean(hispanic),
+            mean_married = mean(married),
+            mean_wkless13 = mean(wkless13),
+            mean_afdc = mean(afdc),
+            mean_age2225 = mean(age2225),
+            mean_age2629 = mean(age2629),
+            mean_age3035 = mean(age3035),
+            mean_age3644 = mean(age3644),
+            mean_age4554 = mean(age4554)))
+```
+
+The groups look quite similar except in some variables where they differ by a few percentage points. In baseline characteristics such as hsorged, hispanic, afdc, and age4554 there is a slight difference between the groups but we cannot be sure without testing.
+
+# 3)
+
+```{r}
+data |> 
+  group_by(received_training) |> 
+  summarise(mean_logincome = mean(logincome),
+            sd = sd(logincome),
+            count = n(),
+            se = sqrt((1.423213^2)/4425 + (1.596272^2)/5447),
+            t_test = (9.259150 - 8.990993)/se)
+```
+reject the null hypothesis at 95% level of confidence
+
+The average logincome of individuals who received training does not equal the average logincome of individuals who did not receive training. The difference in the means do not measure a causal effect effect of training on logincome as there is imperfect compliance with the treatment meaning that there could be selection problems which makes individuals in the received training different from those in the control group.
+
+# 4)
+
+```{r}
+# mean of male and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_male = mean(male),
+            sd = sd(male),
+            count = n(),
+            se = sqrt((0.4984927^2)/6620 + (0.4991303^2)/3252),
+            t_test = (0.4607251 - 0.4692497)/0.01068389)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of hsorged and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_hsorged = mean(hsorged),
+            sd = sd(hsorged),
+            count = n(),
+            se = sqrt((0.4332721^2)/6620 + (0.4398952^2)/3252),
+            t_test = (0.7230403 - 0.7087456)/0.009373444)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of black and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_black = mean(black),
+            sd = sd(black),
+            count = n(),
+            se = sqrt((0.4391457^2)/6620 + (0.4370870^2)/3252),
+            t_test = (0.2608761 - 0.2570726)/0.009374337)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of hispanic and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_hispanic = mean(hispanic),
+            sd = sd(hispanic),
+            count = n(),
+            se = sqrt((0.3051895^2)/6620 + (0.3079983^2)/3252),
+            t_test = (0.1039275 - 0.1060886)/0.00657573)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of married and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_married = mean(married),
+            sd = sd(married),
+            count = n(),
+            se = sqrt((0.4394176^2)/6620 + (0.4293692^2)/3252),
+            t_test = (0.2882695 - 0.2682405)/0.009265958)
+```
+reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of wkless13 and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_wkless13 = mean(wkless13),
+            sd = sd(wkless13),
+            count = n(),
+            se = sqrt((0.4699491^2)/6620 + (0.4701505^2)/3252),
+            t_test = (0.4415291 - 0.4294137)/0.01006639)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of afdc and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_afdc = mean(afdc),
+            sd = sd(afdc),
+            count = n(),
+            se = sqrt((0.3781112^2)/6620 + (0.3789434^2)/3252),
+            t_test = (0.1728097 - 0.1737392)/0.008108837)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of age2225  and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_age2225 = mean(age2225),
+            sd = sd(age2225),
+            count = n(),
+            se = sqrt((0.4278671^2)/6620 + (0.4307462^2)/3252),
+            t_test = (0.2412387 - 0.2460025)/0.009203746)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of age2629 and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_age2629 = mean(age2629),
+            sd = sd(age2629),
+            count = n(),
+            se = sqrt((0.4106121^2)/6620 + (0.3964651^2)/3252),
+            t_test = (0.2146526 - 0.1952645)/0.008590888)
+```
+reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of age3035 and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_age3035 = mean(age3035),
+            sd = sd(age3035),
+            count = n(),
+            se = sqrt((0.4257462^2)/6620 + (0.4334338^2)/3252),
+            t_test = (0.2377644 - 0.2506150)/0.009227657)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of age3644 and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_age3644 = mean(age3644),
+            sd = sd(age3644),
+            count = n(),
+            se = sqrt((0.3943699^2)/6620 + (0.3931176^2)/3252),
+            t_test = (0.1925982 - 0.1909594)/0.008427074)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+```{r}
+# mean of age4554 and test for if treatment means equals control means
+data |> 
+  group_by(offered_training) |> 
+  summarise(mean_age4554 = mean(age4554),
+            sd = sd(age4554),
+            count = n(),
+            se = sqrt((0.2664341^2)/6620 + (0.2717345^2)/3252),
+            t_test = (0.07688822 - 0.08025830)/0.005781786)
+
+```
+do not reject the null hypothesis at 95% level of confidence
+
+The means of the married and age2629 variables were not the same across the treatment and control group. Which could indicate that the assignment to treatment was not actually random.
+
+# 5)
+
+```{r}
+data |> 
+  group_by(male, offered_training) |> 
+  summarise(mean_logincome = mean(logincome),
+            sd = sd(logincome),
+            count = n()) |> 
+  filter(male == 0) |> 
+  mutate(se = sqrt((sd^2)/count + (sd[1]^2)/count[1]),
+         t_test = (8.988229 - 8.869295)/se)
+  
+```
+reject the null hypothesis at 95% level of confidence
+
+```{r}
+data |> 
+  group_by(male, offered_training) |> 
+  summarise(mean_logincome = mean(logincome),
+            sd = sd(logincome),
+            count = n()) |> 
+  filter(male == 1) |> 
+  mutate(se = sqrt((sd^2)/count + (sd[1]^2)/count[1]),
+         t_test = (9.308423 - 9.278250)/se)
+```
+do not reject the null hypothesis at 95% level of confidence
+
+I do not think that Y0 - YN measures the causal effect of training on logincome because of the imperfect compliance of randomization which could cause selection problems. However, Y0 - YN is the intention to treat which measures the causal effect of being assigned to the treatment group on logincome. But because there is imperfect compliance with the randomization process this does not measure the causal effect of training on logincome.
+
+# 6)
+
+```{r}
+data |> 
+  group_by(male, offered_training) |> 
+  summarise(mean_received_training = mean(received_training),
+            sd = sd(received_training),
+            count = n()) |> 
+  filter(male == 0) |> 
+  mutate(se = sqrt((sd^2)/count + (sd[1]^2)/count[1]),
+         t_test = (0.67507003 - 0.01738123)/se)
+```
+
+```{r}
+data |> 
+  group_by(male, offered_training) |> 
+  summarise(mean_received_training = mean(received_training),
+            sd = sd(received_training),
+            count = n()) |> 
+  filter(male == 1) |> 
+  mutate(se = sqrt((sd^2)/count + (sd[1]^2)/count[1]),
+         t_test = (0.64491803 - 0.01179554)/se)
+```
+
+R0 - RN measures the difference for people in that got offered training and received training and people that did not get offered training but still received training. R0 does not equal RN. This is important because we are testing the effect of offering training on income so it is important that only people that got offered training received training while those who were not offered training did not get it. And in order for the IV estimate to have causal effect it must meet the first stage assumption where the instrument does have an effect on the treatment variable. R0 - RN is also called the first stage.
+
+# 7)
+
+```{r}
+female_iv_estimate = (8.988229 - 8.869295)/(0.67507003 - 0.01738123)
+female_iv_estimate
+```
+
+```{r}
+male_iv_estimate = (9.308423 - 9.278250)/(0.64491803 - 0.01179554)
+male_iv_estimate
+```
+
+IV estimates requires the first stage, independence, exclusion, and monotonicity assumptions. The first stage assumption is met as the instrument has a causal effect on treatment. The independence assumption could be met as the instrument is not related to ommited variables but it might not be met as there is evidence to suggest that offered training was not fully randomly assigned. The exclusion assumption is met as being offered training does not affect income but one needs to actually receive training to affect income. The monotonicity assumption is met as everyone that was offered training had a higher change at receiving training. This IV estimate is likely not the same as ATT because IV estimate is a local average treatment effect. It is the causal effect of receiving training for those who received training after being offered training and those who do not receive training after not being offered training.
+
+# 8)
+
+```{r}
+female <- data |> 
+  filter(male == 0)
+
+summary(lm(logincome ~ received_training + hsorged + black + hispanic + married 
+           + wkless13 + afdc + age2225 + age2629 + age3035 + age3644 + age4554,
+           data = female))
+```
+
+```{r}
+male <- data |> 
+  filter(male == 1)
+
+summary(lm(logincome ~ received_training + hsorged + black + hispanic + married 
+           + wkless13 + afdc + age2225 + age2629 + age3035 + age3644 + age4554,
+           data = male))
+```
+
+These OLS estimates do not measure the causal effect of training on logincome because there is imperfect compliance with the randomization of treatment and received_training could be related to the error term which means it could be exogenous.
+
+# 9)
+
+```{r}
+# first stage for females
+fsls_females <- lm(received_training ~ offered_training + hsorged + black + hispanic +
+             married + wkless13 + afdc + age2225 + age2629 + age3035 + age3644 + 
+             age4554, data = female)
+summary(fsls_females)
+
+linearHypothesis(fsls_females, "offered_training = 0")
+```
+
+```{r}
+# first stage for males
+fsls_males <- lm(received_training ~ offered_training + hsorged + black + hispanic +
+             married + wkless13 + afdc + age2225 + age2629 + age3035 + age3644 + 
+             age4554, data = male)
+summary(fsls_males)
+
+linearHypothesis(fsls_males, "offered_training = 0")
+```
+
+The received training variable is not a weak instrument as the F statistic calculated for both genders are well above the 100 needed for a strong instrument.
+
+# 10)
+
+```{r}
+d_hat_females <- fitted.values(fsls_females)
+tsls_female <- lm(logincome ~ d_hat_females + hsorged + black + hispanic + married 
+           + wkless13 + afdc + age2225 + age2629 + age3035 + age3644 + age4554,
+           data = female)
+summary(tsls_female)
+```
+
+```{r}
+d_hat_males <- fitted.values(fsls_males)
+tsls_male <- lm(logincome ~ d_hat_males + hsorged + black + hispanic + married 
+           + wkless13 + afdc + age2225 + age2629 + age3035 + age3644 + age4554,
+           data = male)
+summary(tsls_male)
+```
+
+The estimated coefficient on the first stage regression measure the effect of the instrument on the treatment. It is different from the received_training variable because this new coefficient is a function of offered_training and the baseline characteristics which are all exogenous which would make the new coefficient exogenous as well.
+
+# 11)
+
+For 2SLS to have a causal effect my instrument must be correlated with the treatment and it must be exogenous meaning it must be uncorrelated with the error term. We can test these assumptions via the causal chain that offered_training -\> received_training -\> logincome but offered_training has no effect on logincome which is only possible if those 2 above assumptions are met. I believe that offered_training can only affect logincome through received_training therefore the assumptions are met.
+
+# 12)
+
+```{r}
+# "proper" ivreg for females
+ivreg_female <- ivreg(logincome ~ received_training + hsorged + black + hispanic 
+                      + married  + wkless13 + afdc + age2225 + age2629 + age3035 
+                      + age3644 + age4554 | offered_training + hsorged + black 
+                      + hispanic + married + wkless13 + afdc + age2225 + age2629 
+                      + age3035 + age3644 + age4554, data = female)
+summary(ivreg_female)
+```
+
+```{r}
+# "proper" ivreg for males
+ivreg_male <- ivreg(logincome ~ received_training + hsorged + black + hispanic 
+                    + married + wkless13 + afdc + age2225 + age2629 + age3035 
+                    + age3644 + age4554 | offered_training + hsorged + black 
+                    + hispanic + married + wkless13 + afdc + age2225 + age2629 
+                    + age3035 + age3644 + age4554, data = male)
+summary(ivreg_male)
+```
+
+My estimates are the same as the ones i obtained from question 10 because they are the same regression but the question 10 regression was done manually while the regression in this question was done with the ivreg function.
+
+# 13)
+
+Training has a significant effect on logincome for females as the t-statistic is higher than the 1.96 critical value for 95% level of confidence. While training has no significant effect on logincome for males as the t-statistic is lower than the 1.96 critical value for 95% level of confidence.
