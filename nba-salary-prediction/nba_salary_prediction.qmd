@@ -47,9 +47,12 @@ The average NBA player in the during the 2022-23 season made a salary of
 8.4 million dollars while averaging 9.1 points, 3.5 rebounds, and 2.1
 assists per game. I want to create some models that will attempt to
 predict an NBA players salary. I will based these models solely on
-statistics from the player's basic box score. The data I have is of 467
-NBA players' salaries and their basic statistics including points per
-game, assists per game, total rebound per game, etc.
+statistics from the player's basic box score. Of course salaries in real
+life are based on many more factors than included in this analysis, But
+it will be interesting to see what salaries would be like based only on
+box score statistics. The data I have is of 467 NBA players' salaries
+and their basic statistics including points per game, assists per game,
+total rebound per game, etc.
 
 ------------------------------------------------------------------------
 
@@ -99,8 +102,7 @@ regression in one of the models
 nba_dat |> 
   ggplot(aes(x = MP, y = PTS)) + 
   geom_point(aes(color = Position)) +
-  geom_smooth(method = lm, formula = y ~ poly(x, 3), se = FALSE) + 
-  scale_y_continuous(labels = label_dollar()) + 
+  geom_smooth(method = lm, formula = y ~ poly(x, 3), se = FALSE) +
   labs(title = "Points Per Game vs Minutes Played Per Game",
        x = "Minutes Played Per Game",
        y = "Points Per Game") + 
@@ -121,25 +123,44 @@ points per game.
 
 # The Models
 
+### Baseline
+
+$$
+\begin{aligned}
+\log(\text{Salary}) = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \epsilon
+\end{aligned}
+$$
+
+
 ### Linear
 
 $$
-\text{Salary} = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \beta_4 \cdot \text{Age} \\
-+ \beta_5 \cdot MP + \beta_6 \cdot MP^2 + \beta_7 \cdot MP^3 + \epsilon
+\begin{aligned}
+\log(\text{Salary}) = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \beta_4 \cdot \text{Age} + \beta_5 \cdot MP + \epsilon
+\end{aligned}
 $$
+
 
 ### Polynomial
 
 $$
-\text{Salary} = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \beta_4 \cdot \text{Age} \\
-+ \beta_5 \cdot \text{MP} + \beta_6 \cdot \text{MP}^2 + \beta_7 \cdot \text{MP}^3 + \epsilon
+\begin{aligned}
+\log(\text{Salary}) = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \beta_4 \cdot \text{Age} + \beta_5 \cdot \text{MP} + \beta_6 \cdot \text{MP}^2 + \beta_7 \cdot \text{MP}^3 + \epsilon
+\end{aligned}
 $$
+
 
 ### Interaction
 
 $$
-\text{Salary} = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \\ \beta_4 \cdot \text{Age} + \beta_5 \cdot \text{MP} + \beta_6 \cdot \text{PTS} \times \text{MP} + \epsilon
-$$
+\log(\text{Salary}) = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \\ \beta_4 \cdot \text{Age} + \beta_5 \cdot \text{MP} + \beta_6 \cdot \text{PTS} \times \text{MP} + \epsilon
+$$ 
+
+I have a baseline model with just the three very basic box score
+statistics points, rebounds and assists per game. A second model with
+age and minutes played factored in, models three which includes a
+polynomial term and model four with an interaction term. I will use MSPE
+to measure accuracy.
 
 ------------------------------------------------------------------------
 
@@ -152,9 +173,6 @@ get_MSPE <- function(Y, Y_hat) {
   return(MSPE)
 }
 ```
-
-This is a function that will get the MSPE which is a measure of how well
-a model performs for prediction.
 
 ```{r}
 set.seed(2003125)
@@ -169,44 +187,48 @@ dat_cv <- nba_dat
 dat_cv$Salary <- log(dat_cv$Salary)
 dat_cv$fold <- shuffled_ids
 
-CV_MSPEs <- array(0, dim = c(10, 3))
-colnames(CV_MSPEs) <- c("Linear", "Poly", "Interaction")
+CV_MSPEs <- array(0, dim = c(10, 4))
+colnames(CV_MSPEs) <- c("Baseline", "Linear", "Poly", "Interaction")
 
 for (i in 1:10) {
   data_train <- filter(dat_cv, fold != i)
   data_valid <- filter(dat_cv, fold == i)
   
+  base_mod <- lm(Salary ~ PTS + TRB + AST, data = data_train)
   lin_mod <- lm(Salary ~ PTS + TRB + AST + Age + MP, data = data_train)
   poly_mod <- lm(Salary ~ PTS + TRB + AST + Age + poly(MP,3), data = data_train)
   intera_mod <- lm(Salary ~ PTS + TRB + AST + Age + MP + PTS:MP, data = data_train)
   
+  base_pred <- predict(base_mod, data_valid)
   lin_pred <- predict(lin_mod, data_valid)
   poly_pred <- predict(poly_mod, data_valid)
   intera_pred <- predict(intera_mod, data_valid)
   
   Y_valid <- data_valid$Salary
+  MSPE_base <- get_MSPE(Y_valid, base_pred)
   MSPE_lin <- get_MSPE(Y_valid, lin_pred)
   MSPE_poly <- get_MSPE(Y_valid, poly_pred)
   MSPE_intera <- get_MSPE(Y_valid, intera_pred)
   
-  CV_MSPEs[i, 1] <- MSPE_lin
-  CV_MSPEs[i, 2] <- MSPE_poly
-  CV_MSPEs[i, 3] <- MSPE_intera
+  CV_MSPEs[i, 1] <- MSPE_base
+  CV_MSPEs[i, 2] <- MSPE_lin
+  CV_MSPEs[i, 3] <- MSPE_poly
+  CV_MSPEs[i, 4] <- MSPE_intera
   
 }
 ```
 
 I used 10 fold cross validation to judge the performance of my three
-models. This will produce 10 calculation of MSPE for each of the 3
-models. I will use the average of the 10 MSPE to use as a measure of the
-predictive power of each of the models.
+models plus baseline. This will produce 10 calculation of MSPE for each
+of the 3 models. I will use the average of the 10 MSPE to use as a
+measure of the predictive power of each of the models.
 
 ------------------------------------------------------------------------
 
 # Conclusion
 
 ```{r}
-CV_dataframe <-  as.data.frame(CV_MSPEs) 
+CV_dataframe <-  as_tibble(CV_MSPEs) 
 CV_dataframe |>
 pivot_longer(cols = everything(),
 names_to = "Model",
@@ -222,27 +244,32 @@ CV_dataframe |> colMeans()
 ```
 
 The models I chose generally performed about the same as they have a
-similar MSPE averaged out from the 10 fold cross validation. Seeing as
-how they all perform about the same I will be using the linear model as
-it is the most simple which will provide a good balance between model
-bias and variance.
+similar MSPE averaged out from the 10 fold cross validation. They all
+have a 20% decrease in MSPE compared to the baseline. Seeing as how they
+all perform about the same I will be using the linear model as it is the
+most simple which will provide a good balance between model bias and
+variance.
 
 ------------------------------------------------------------------------
 
 ```{r}
-imaginary_player <- data.frame(PTS = 15.6, 
-                               TRB = 7.3, 
-                               AST = 3.6, 
-                               Age = 26, 
-                               MP = 30.2)
+imaginary_players <- tibble(PTS = c(15.6, 35.6, 15.1),
+                            TRB = c(7.3, 8.7, 10.4), 
+                            AST = c(3.6, 12.2, 2.1), 
+                            Age = c(26, 28, 32), 
+                            MP = c(30.2, 33.6, 30.3))
+imaginary_players
 
-predicted_log_salary <- predict(lin_mod, newdata = imaginary_player)
+predicted_log_salaries <- predict(lin_mod, newdata = imaginary_players)
 
-predicted_salary <- exp(predicted_log_salary)
-predicted_salary
+predicted_salaries <- exp(predicted_log_salaries)
+predicted_salaries
+
 ```
 
-So according to my model an imaginary player who is a solid starter
-playing 30.2 minutes per night averaging 15.6 points, 7.3 rebounds, 3.6
-assists, and aged 26 should be paid a salary of 11.4 million per year in
-2022-23 money.
+So according to my model a solid starter would make 11.4 million, an MVP
+winner would make 28.7 million and an all star caliber player would make
+27.3 million. Its interesting to see what salaries would be like if they
+were only based off of on-course production. But of course there are
+many factors that are not represented here such as marketability, future
+potential, or past accomplishments.
