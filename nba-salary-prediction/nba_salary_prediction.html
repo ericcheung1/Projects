@@ -161,7 +161,7 @@ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 </div>
 <section id="introduction" class="level1">
 <h1>Introduction</h1>
-<p>The average NBA player in the during the 2022-23 season made a salary of 8.4 million dollars while averaging 9.1 points, 3.5 rebounds, and 2.1 assists per game. I want to create some models that will attempt to predict an NBA players salary. I will based these models solely on statistics from the player’s basic box score. The data I have is of 467 NBA players’ salaries and their basic statistics including points per game, assists per game, total rebound per game, etc.</p>
+<p>The average NBA player in the during the 2022-23 season made a salary of 8.4 million dollars while averaging 9.1 points, 3.5 rebounds, and 2.1 assists per game. I want to create some models that will attempt to predict an NBA players salary. I will based these models solely on statistics from the player’s basic box score. Of course salaries in real life are based on many more factors than included in this analysis, But it will be interesting to see what salaries would be like based only on box score statistics. The data I have is of 467 NBA players’ salaries and their basic statistics including points per game, assists per game, total rebound per game, etc.</p>
 <hr>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>nba_dat <span class="sc">|&gt;</span> <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> PTS, <span class="at">y =</span> Salary)) <span class="sc">+</span> </span>
@@ -202,12 +202,11 @@ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>nba_dat <span class="sc">|&gt;</span> </span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x =</span> MP, <span class="at">y =</span> PTS)) <span class="sc">+</span> </span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">color =</span> Position)) <span class="sc">+</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> lm, <span class="at">formula =</span> y <span class="sc">~</span> <span class="fu">poly</span>(x, <span class="dv">3</span>), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span> </span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_y_continuous</span>(<span class="at">labels =</span> <span class="fu">label_dollar</span>()) <span class="sc">+</span> </span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Points Per Game vs Minutes Played Per Game"</span>,</span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Minutes Played Per Game"</span>,</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Points Per Game"</span>) <span class="sc">+</span> </span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> lm, <span class="at">formula =</span> y <span class="sc">~</span> <span class="fu">poly</span>(x, <span class="dv">3</span>), <span class="at">se =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Points Per Game vs Minutes Played Per Game"</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Minutes Played Per Game"</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Points Per Game"</span>) <span class="sc">+</span> </span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <p><img src="nba_salary_prediction_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid" width="672"></p>
 </div>
@@ -217,25 +216,36 @@ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 </section>
 <section id="the-models" class="level1">
 <h1>The Models</h1>
+<section id="baseline" class="level3">
+<h3 class="anchored" data-anchor-id="baseline">Baseline</h3>
+<p><span class="math display">\[
+\begin{aligned}
+\log(\text{Salary}) = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \epsilon
+\end{aligned}
+\]</span></p>
+</section>
 <section id="linear" class="level3">
 <h3 class="anchored" data-anchor-id="linear">Linear</h3>
 <p><span class="math display">\[
-\text{Salary} = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \beta_4 \cdot \text{Age} \\
-+ \beta_5 \cdot MP + \beta_6 \cdot MP^2 + \beta_7 \cdot MP^3 + \epsilon
+\begin{aligned}
+\log(\text{Salary}) = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \beta_4 \cdot \text{Age} + \beta_5 \cdot MP + \epsilon
+\end{aligned}
 \]</span></p>
 </section>
 <section id="polynomial" class="level3">
 <h3 class="anchored" data-anchor-id="polynomial">Polynomial</h3>
 <p><span class="math display">\[
-\text{Salary} = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \beta_4 \cdot \text{Age} \\
-+ \beta_5 \cdot \text{MP} + \beta_6 \cdot \text{MP}^2 + \beta_7 \cdot \text{MP}^3 + \epsilon
+\begin{aligned}
+\log(\text{Salary}) = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \beta_4 \cdot \text{Age} + \beta_5 \cdot \text{MP} + \beta_6 \cdot \text{MP}^2 + \beta_7 \cdot \text{MP}^3 + \epsilon
+\end{aligned}
 \]</span></p>
 </section>
 <section id="interaction" class="level3">
 <h3 class="anchored" data-anchor-id="interaction">Interaction</h3>
 <p><span class="math display">\[
-\text{Salary} = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \\ \beta_4 \cdot \text{Age} + \beta_5 \cdot \text{MP} + \beta_6 \cdot \text{PTS} \times \text{MP} + \epsilon
+\log(\text{Salary}) = \beta_0 + \beta_1 \cdot \text{PTS} + \beta_2 \cdot \text{TRB} + \beta_3 \cdot \text{AST} + \\ \beta_4 \cdot \text{Age} + \beta_5 \cdot \text{MP} + \beta_6 \cdot \text{PTS} \times \text{MP} + \epsilon
 \]</span></p>
+<p>I have a baseline model with just the three very basic box score statistics points, rebounds and assists per game. A second model with age and minutes played factored in, models three which includes a polynomial term and model four with an interaction term. I will use MSPE to measure accuracy.</p>
 <hr>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>get_MSPE <span class="ot">&lt;-</span> <span class="cf">function</span>(Y, Y_hat) {</span>
@@ -246,7 +256,6 @@ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 <span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(MSPE)</span>
 <span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>This is a function that will get the MSPE which is a measure of how well a model performs for prediction.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">2003125</span>)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>n <span class="ot">&lt;-</span> <span class="fu">nrow</span>(nba_dat)</span>
@@ -260,40 +269,44 @@ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 <span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>dat_cv<span class="sc">$</span>Salary <span class="ot">&lt;-</span> <span class="fu">log</span>(dat_cv<span class="sc">$</span>Salary)</span>
 <span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>dat_cv<span class="sc">$</span>fold <span class="ot">&lt;-</span> shuffled_ids</span>
 <span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>CV_MSPEs <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim =</span> <span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">3</span>))</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(CV_MSPEs) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Linear"</span>, <span class="st">"Poly"</span>, <span class="st">"Interaction"</span>)</span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>CV_MSPEs <span class="ot">&lt;-</span> <span class="fu">array</span>(<span class="dv">0</span>, <span class="at">dim =</span> <span class="fu">c</span>(<span class="dv">10</span>, <span class="dv">4</span>))</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="fu">colnames</span>(CV_MSPEs) <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"Baseline"</span>, <span class="st">"Linear"</span>, <span class="st">"Poly"</span>, <span class="st">"Interaction"</span>)</span>
 <span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span><span class="dv">10</span>) {</span>
 <span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>  data_train <span class="ot">&lt;-</span> <span class="fu">filter</span>(dat_cv, fold <span class="sc">!=</span> i)</span>
 <span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  data_valid <span class="ot">&lt;-</span> <span class="fu">filter</span>(dat_cv, fold <span class="sc">==</span> i)</span>
 <span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  lin_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Salary <span class="sc">~</span> PTS <span class="sc">+</span> TRB <span class="sc">+</span> AST <span class="sc">+</span> Age <span class="sc">+</span> MP, <span class="at">data =</span> data_train)</span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  poly_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Salary <span class="sc">~</span> PTS <span class="sc">+</span> TRB <span class="sc">+</span> AST <span class="sc">+</span> Age <span class="sc">+</span> <span class="fu">poly</span>(MP,<span class="dv">3</span>), <span class="at">data =</span> data_train)</span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  intera_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Salary <span class="sc">~</span> PTS <span class="sc">+</span> TRB <span class="sc">+</span> AST <span class="sc">+</span> Age <span class="sc">+</span> MP <span class="sc">+</span> PTS<span class="sc">:</span>MP, <span class="at">data =</span> data_train)</span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  lin_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(lin_mod, data_valid)</span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  poly_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(poly_mod, data_valid)</span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>  intera_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(intera_mod, data_valid)</span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>  Y_valid <span class="ot">&lt;-</span> data_valid<span class="sc">$</span>Salary</span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>  MSPE_lin <span class="ot">&lt;-</span> <span class="fu">get_MSPE</span>(Y_valid, lin_pred)</span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>  MSPE_poly <span class="ot">&lt;-</span> <span class="fu">get_MSPE</span>(Y_valid, poly_pred)</span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>  MSPE_intera <span class="ot">&lt;-</span> <span class="fu">get_MSPE</span>(Y_valid, intera_pred)</span>
-<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>  CV_MSPEs[i, <span class="dv">1</span>] <span class="ot">&lt;-</span> MSPE_lin</span>
-<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>  CV_MSPEs[i, <span class="dv">2</span>] <span class="ot">&lt;-</span> MSPE_poly</span>
-<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>  CV_MSPEs[i, <span class="dv">3</span>] <span class="ot">&lt;-</span> MSPE_intera</span>
-<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>  </span>
-<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>  base_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Salary <span class="sc">~</span> PTS <span class="sc">+</span> TRB <span class="sc">+</span> AST, <span class="at">data =</span> data_train)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>  lin_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Salary <span class="sc">~</span> PTS <span class="sc">+</span> TRB <span class="sc">+</span> AST <span class="sc">+</span> Age <span class="sc">+</span> MP, <span class="at">data =</span> data_train)</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>  poly_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Salary <span class="sc">~</span> PTS <span class="sc">+</span> TRB <span class="sc">+</span> AST <span class="sc">+</span> Age <span class="sc">+</span> <span class="fu">poly</span>(MP,<span class="dv">3</span>), <span class="at">data =</span> data_train)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>  intera_mod <span class="ot">&lt;-</span> <span class="fu">lm</span>(Salary <span class="sc">~</span> PTS <span class="sc">+</span> TRB <span class="sc">+</span> AST <span class="sc">+</span> Age <span class="sc">+</span> MP <span class="sc">+</span> PTS<span class="sc">:</span>MP, <span class="at">data =</span> data_train)</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>  base_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(base_mod, data_valid)</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>  lin_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(lin_mod, data_valid)</span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>  poly_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(poly_mod, data_valid)</span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>  intera_pred <span class="ot">&lt;-</span> <span class="fu">predict</span>(intera_mod, data_valid)</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>  Y_valid <span class="ot">&lt;-</span> data_valid<span class="sc">$</span>Salary</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>  MSPE_base <span class="ot">&lt;-</span> <span class="fu">get_MSPE</span>(Y_valid, base_pred)</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>  MSPE_lin <span class="ot">&lt;-</span> <span class="fu">get_MSPE</span>(Y_valid, lin_pred)</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>  MSPE_poly <span class="ot">&lt;-</span> <span class="fu">get_MSPE</span>(Y_valid, poly_pred)</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>  MSPE_intera <span class="ot">&lt;-</span> <span class="fu">get_MSPE</span>(Y_valid, intera_pred)</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>  CV_MSPEs[i, <span class="dv">1</span>] <span class="ot">&lt;-</span> MSPE_base</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>  CV_MSPEs[i, <span class="dv">2</span>] <span class="ot">&lt;-</span> MSPE_lin</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>  CV_MSPEs[i, <span class="dv">3</span>] <span class="ot">&lt;-</span> MSPE_poly</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>  CV_MSPEs[i, <span class="dv">4</span>] <span class="ot">&lt;-</span> MSPE_intera</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>  </span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>I used 10 fold cross validation to judge the performance of my three models. This will produce 10 calculation of MSPE for each of the 3 models. I will use the average of the 10 MSPE to use as a measure of the predictive power of each of the models.</p>
+<p>I used 10 fold cross validation to judge the performance of my three models plus baseline. This will produce 10 calculation of MSPE for each of the 3 models. I will use the average of the 10 MSPE to use as a measure of the predictive power of each of the models.</p>
 <hr>
 </section>
 </section>
 <section id="conclusion" class="level1">
 <h1>Conclusion</h1>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>CV_dataframe <span class="ot">&lt;-</span>  <span class="fu">as.data.frame</span>(CV_MSPEs) </span>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>CV_dataframe <span class="ot">&lt;-</span>  <span class="fu">as_tibble</span>(CV_MSPEs) </span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>CV_dataframe <span class="sc">|&gt;</span></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>(),</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="at">names_to =</span> <span class="st">"Model"</span>,</span>
@@ -309,29 +322,37 @@ Specify the column types or set `show_col_types = FALSE` to quiet this message.
 </div>
 <div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>CV_dataframe <span class="sc">|&gt;</span> <span class="fu">colMeans</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>     Linear        Poly Interaction 
-   1.235302    1.224824    1.231477 </code></pre>
+<pre><code>   Baseline      Linear        Poly Interaction 
+   1.490181    1.235302    1.224824    1.231477 </code></pre>
 </div>
 </div>
-<p>The models I chose generally performed about the same as they have a similar MSPE averaged out from the 10 fold cross validation. Seeing as how they all perform about the same I will be using the linear model as it is the most simple which will provide a good balance between model bias and variance.</p>
+<p>The models I chose generally performed about the same as they have a similar MSPE averaged out from the 10 fold cross validation. They all have a 20% decrease in MSPE compared to the baseline. Seeing as how they all perform about the same I will be using the linear model as it is the most simple which will provide a good balance between model bias and variance.</p>
 <hr>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>imaginary_player <span class="ot">&lt;-</span> <span class="fu">data.frame</span>(<span class="at">PTS =</span> <span class="fl">15.6</span>, </span>
-<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                               <span class="at">TRB =</span> <span class="fl">7.3</span>, </span>
-<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                               <span class="at">AST =</span> <span class="fl">3.6</span>, </span>
-<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                               <span class="at">Age =</span> <span class="dv">26</span>, </span>
-<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                               <span class="at">MP =</span> <span class="fl">30.2</span>)</span>
-<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>predicted_log_salary <span class="ot">&lt;-</span> <span class="fu">predict</span>(lin_mod, <span class="at">newdata =</span> imaginary_player)</span>
-<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>predicted_salary <span class="ot">&lt;-</span> <span class="fu">exp</span>(predicted_log_salary)</span>
-<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a>predicted_salary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>imaginary_players <span class="ot">&lt;-</span> <span class="fu">tibble</span>(<span class="at">PTS =</span> <span class="fu">c</span>(<span class="fl">15.6</span>, <span class="fl">35.6</span>, <span class="fl">15.1</span>),</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                            <span class="at">TRB =</span> <span class="fu">c</span>(<span class="fl">7.3</span>, <span class="fl">8.7</span>, <span class="fl">10.4</span>), </span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                            <span class="at">AST =</span> <span class="fu">c</span>(<span class="fl">3.6</span>, <span class="fl">12.2</span>, <span class="fl">2.1</span>), </span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                            <span class="at">Age =</span> <span class="fu">c</span>(<span class="dv">26</span>, <span class="dv">28</span>, <span class="dv">32</span>), </span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>                            <span class="at">MP =</span> <span class="fu">c</span>(<span class="fl">30.2</span>, <span class="fl">33.6</span>, <span class="fl">30.3</span>))</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>imaginary_players</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>       1 
-11379414 </code></pre>
+<pre><code># A tibble: 3 × 5
+    PTS   TRB   AST   Age    MP
+  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;
+1  15.6   7.3   3.6    26  30.2
+2  35.6   8.7  12.2    28  33.6
+3  15.1  10.4   2.1    32  30.3</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>predicted_log_salaries <span class="ot">&lt;-</span> <span class="fu">predict</span>(lin_mod, <span class="at">newdata =</span> imaginary_players)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>predicted_salaries <span class="ot">&lt;-</span> <span class="fu">exp</span>(predicted_log_salaries)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>predicted_salaries</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>       1        2        3 
+11379414 28666647 27334004 </code></pre>
 </div>
 </div>
-<p>So according to my model an imaginary player who is a solid starter playing 30.2 minutes per night averaging 15.6 points, 7.3 rebounds, 3.6 assists, and aged 26 should be paid a salary of 11.4 million per year in 2022-23 money.</p>
+<p>So according to my model a solid starter would make 11.4 million, an MVP winner would make 28.7 million and an all star caliber player would make 27.3 million. Its interesting to see what salaries would be like if they were only based off of on-course production. But of course there are many factors that are not represented here such as marketability, future potential, or past accomplishments.</p>
 </section>
 
 </main>
