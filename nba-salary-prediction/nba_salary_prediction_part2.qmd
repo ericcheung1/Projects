@@ -1,0 +1,110 @@
+---
+title: "NBA Salary Prediction Part 2"
+author: "Eric Cheung"
+format: pdf
+editor: visual
+---
+
+```{r}
+#| message: false
+library(tidyverse)
+library(glmnet)
+library(scales)
+```
+
+```{r}
+nba_data <- read_csv("nba_2022-23_all_stats_with_salary.csv")
+nba_data <- nba_data |> select(-1, -2, -4, -6)
+nba_data <- nba_data |> 
+  mutate(across(everything(), ~ replace_na(.x, 0)))
+nba_data$Salary <- log(nba_data$Salary)
+```
+
+```{r}
+set.seed(2003125)
+n <- nrow(nba_data)
+n_fold <- ceiling(n / 10)
+order_ids <- rep(1:10, times = n_fold)
+order_ids <- order_ids[1:n]
+shuffle <- sample.int(n)
+shuffled_ids <- order_ids[shuffle]
+
+data <- nba_data
+data$fold <- shuffled_ids
+```
+
+```{r}
+get_MSPE <- function(Y, Y_hat) {
+  residuals <- Y - Y_hat
+  resid_sq <- residuals^2
+  SSPE <- sum(resid_sq)
+  MSPE <- SSPE / length(Y)
+  return(MSPE)
+}
+```
+
+```{r}
+CV_MSPEs <- array(0, dim = c(10, 4))
+colnames(CV_MSPEs) <- c("Linear", "Linear-all","LASSO-min", "LASSO-1SE")
+
+for (i in 1:10) {
+  data_train <- filter(data, fold != i)
+  data_valid <- filter(data, fold == i)
+  y_train <- data_train$Salary
+  y_valid <- data_valid$Salary
+  n_train <- nrow(data_train)
+
+  linear_all <- lm(Salary ~ ., data = data_train)
+  linear_mod <- lm(Salary ~ PTS + TRB + AST + Age + MP, data = data_train)
+  
+  y <- data_train$Salary
+  x <- as.matrix(data_train[, 2:48])
+  lasso_mod <- cv.glmnet(y = y, x = x, family = "gaussian")
+  
+  # Predict
+  
+  pred_lin <- predict(linear_mod, data_valid)
+  pred_lin_all <- predict(linear_all, data_valid)
+  
+  x_pred <- as.matrix(data_valid[, 2:48])
+  pred_lasso_min <- predict(lasso_mod, newx = x_pred, s = lasso_mod$lambda.min)
+  pred_lasso_1se <- predict(lasso_mod, newx = x_pred, s = lasso_mod$lambda.1se)
+  
+  CV_MSPEs[i, "Linear"] <- get_MSPE(data_valid$Salary, pred_lin)
+  CV_MSPEs[i, "Linear-all"] <- get_MSPE(data_valid$Salary, pred_lin_all)
+  CV_MSPEs[i, "LASSO-min"] <- get_MSPE(data_valid$Salary, pred_lasso_min)
+  CV_MSPEs[i, "LASSO-1SE"] <- get_MSPE(data_valid$Salary, pred_lasso_1se)
+}
+```
+
+```{r}
+colMeans(CV_MSPEs)
+```
+
+```{r}
+lasso_coefs_min <- as.data.frame(as.matrix(coef(lasso_mod, s = lasso_mod$lambda.min)))
+lasso_coefs_min <- lasso_coefs_min |> 
+  rownames_to_column(var = "Variable")
+colnames(lasso_coefs_min) <- c("Variable", "Coefficients")
+
+lasso_coefs_min |> 
+  filter(Coefficients != 0) |> 
+  arrange(desc(Coefficients))
+
+# lasso_coefs_1se$Variable <- rownames(lasso_coefs_1se)
+# colnames(lasso_coefs_1se) <- c("Coefficient", "Variable")
+# lasso_coefs_1se |> 
+#   filter(Coefficient != 0) |> 
+#   select(-2)
+```
+
+```{r}
+lasso_coefs_1se <- as.data.frame(as.matrix(coef(lasso_mod, s = lasso_mod$lambda.1se)))
+lasso_coefs_1se <- lasso_coefs_1se |> 
+  rownames_to_column(var = "Variable")
+colnames(lasso_coefs_1se) <- c("Variable", "Coefficients")
+
+lasso_coefs_1se |> 
+  filter(Coefficients != 0) |> 
+  arrange(desc(Coefficients))
+```
